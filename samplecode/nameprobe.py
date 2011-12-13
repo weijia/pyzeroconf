@@ -16,7 +16,7 @@ def main( base_name='coolserver.local.'):
             properties = {},
         )
         z.registerService( s )
-        name = z.probeName( 'coolserver.local.' )
+        name = z.probeName( base_name )
         z.unregisterService( s )
         print 'Negotiated name:', name
         s.server = name 
