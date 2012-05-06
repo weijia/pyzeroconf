@@ -299,6 +299,7 @@ class Zeroconf(object):
         self.suppression_queue = []
         self.browsers = []
         self.services = {}
+        self.servicetypes = {}
 
         self.cache = dns.DNSCache()
 
@@ -428,6 +429,11 @@ class Zeroconf(object):
         changed if needed to make it unique on the network."""
         self.checkService(info)
         self.services[info.name.lower()] = info
+
+        if info.type not in self.servicetypes:
+            self.servicetypes[info.type] = 0
+        self.servicetypes[info.type] += 1
+
         now = dns.currentTimeMillis()
         nextTime = now
         i = 0
@@ -455,6 +461,10 @@ class Zeroconf(object):
         """Unregister a service."""
         try:
             del(self.services[info.name.lower()])
+
+            self.servicetypes[info.type] -= 1
+            if self.servicetypes[info.type] <= 0:
+                del self.servicetypes[info.type]
         except:
             pass
         now = dns.currentTimeMillis()
@@ -607,7 +617,15 @@ class Zeroconf(object):
         match the query.
         """
         log.debug( 'Question: %s', question )
-        for service in self.services.values():
+
+        if question.type == dns._TYPE_PTR and question.name == '_services._dns-sd._udp.local.':
+            if len(self.servicetypes) > 0:
+                if out is None:
+                    out = DNSOutgoing(_FLAGS_QR_RESPONSE | _FLAGS_AA)
+                for stype in self.servicetypes:
+                    out.addAnswer(msg, DNSPointer('_services._dns-sd._udp.local.', _TYPE_PTR, _CLASS_IN, _DNS_TTL, stype))
+
+        for service in self.services.values() :
             if question.type == dns._TYPE_PTR:
                 if question.name.lower() in (service.type.lower(),service.name.lower()):
                     log.debug( 'Service query found %s', service.name )
