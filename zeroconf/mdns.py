@@ -309,10 +309,10 @@ class Zeroconf(object):
         self.reaper = Reaper(self)
 
     def isLoopback(self):
-        return self.intf.startswith("127.0.0.1")
+        return self.intf in ('127.0.0.1', '::1')
 
     def isLinklocal(self):
-        return self.intf.startswith("169.254.")
+        return self.intf.startswith('169.254.') or self.intf.startswith('fe80:')
 
     def wait(self, timeout):
         """Calling thread waits for a given number of milliseconds or
