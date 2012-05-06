@@ -3,7 +3,7 @@ import socket
 
 class MyListener(object):
     def __init__(self):
-        self.r = Zeroconf('0.0.0.0')
+        self.r = Zeroconf('')
         pass
 
     def removeService(self, zeroconf, type_, name):

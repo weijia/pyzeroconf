@@ -278,6 +278,31 @@ class ServiceBrowser(threading.Thread):
             if event is not None:
                 event(self.zeroconf)
 
+def _detect_interface_addr():
+    # Pulled this out so that I can work on it later.
+
+    try:
+        # From trickplay's fork--see what interface we use to ping
+        # Google.  Crude, but it works (assuming you have one "real"
+        # interface).
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('www.google.com',80))
+        addr = s.getsockname()[0]
+        s.close()
+        return addr
+    except:
+        pass
+
+    try:
+        # From the original.  This fails on my MBP when it gets the
+        # loopback interface (which is a problem, anyhow).
+        return socket.gethostbyname(socket.gethostname())
+    except:
+        pass
+
+    raise Exception('Out of clever tricks; can\'t automatically detect interface.')
+
+
 class Zeroconf(object):
     """Implementation of Zeroconf Multicast DNS Service Discovery
 
@@ -287,11 +312,7 @@ class Zeroconf(object):
         """Creates an instance of the Zeroconf class, establishing
         multicast communications, listening and reaping threads."""
         globals()['_GLOBAL_DONE'] = 0
-        if bindaddress is None:
-            self.intf = socket.gethostbyname(socket.gethostname())
-            bindaddress = self.intf
-        else:
-            self.intf = bindaddress
+        self.intf = bindaddress = bindaddress or _detect_interface_addr()
         self.socket = mcastsocket.create_socket( (bindaddress, dns._MDNS_PORT) )
         mcastsocket.join_group( self.socket, dns._MDNS_ADDR )
 
