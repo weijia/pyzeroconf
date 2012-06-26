@@ -4,3 +4,4 @@ build
 *.pyc
 *.pyo
 *.e4?
+*.egg-info
