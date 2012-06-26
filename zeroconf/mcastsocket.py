@@ -56,10 +56,7 @@ def create_socket( address, TTL=1, loop=True, reuse=True ):
         # because the 224.* isn't getting mapped (routed) to the address of the interface...
         # to debug that case, see if {{{ip route add 224.0.0.0/4 dev br0}}} (or whatever your
         # interface is) makes the route suddenly start working...
-        if address[0]:
-            sock.bind( address )
-        else:
-            sock.bind(('',address[1]))
+        sock.bind(('',address[1]))
     except Exception, err:
         # Some versions of linux raise an exception even though
         # the SO_REUSE* options have been set, so ignore it
