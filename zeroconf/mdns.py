@@ -278,6 +278,31 @@ class ServiceBrowser(threading.Thread):
             if event is not None:
                 event(self.zeroconf)
 
+def _detect_interface_addr():
+    # Pulled this out so that I can work on it later.
+
+    try:
+        # From trickplay's fork--see what interface we use to ping
+        # Google.  Crude, but it works (assuming you have one "real"
+        # interface).
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('www.google.com',80))
+        addr = s.getsockname()[0]
+        s.close()
+        return addr
+    except:
+        pass
+
+    try:
+        # From the original.  This fails on my MBP when it gets the
+        # loopback interface (which is a problem, anyhow).
+        return socket.gethostbyname(socket.gethostname())
+    except:
+        pass
+
+    raise Exception('Out of clever tricks; can\'t automatically detect interface.')
+
+
 class Zeroconf(object):
     """Implementation of Zeroconf Multicast DNS Service Discovery
 
@@ -287,11 +312,7 @@ class Zeroconf(object):
         """Creates an instance of the Zeroconf class, establishing
         multicast communications, listening and reaping threads."""
         globals()['_GLOBAL_DONE'] = 0
-        if bindaddress is None:
-            self.intf = socket.gethostbyname(socket.gethostname())
-            bindaddress = self.intf
-        else:
-            self.intf = bindaddress
+        self.intf = bindaddress = bindaddress or _detect_interface_addr()
         self.socket = mcastsocket.create_socket( (bindaddress, dns._MDNS_PORT) )
         mcastsocket.join_group( self.socket, dns._MDNS_ADDR )
 
@@ -299,6 +320,7 @@ class Zeroconf(object):
         self.suppression_queue = []
         self.browsers = []
         self.services = {}
+        self.servicetypes = {}
 
         self.cache = dns.DNSCache()
 
@@ -309,10 +331,10 @@ class Zeroconf(object):
         self.reaper = Reaper(self)
 
     def isLoopback(self):
-        return self.intf.startswith("127.0.0.1")
+        return self.intf in ('127.0.0.1', '::1')
 
     def isLinklocal(self):
-        return self.intf.startswith("169.254.")
+        return self.intf.startswith('169.254.') or self.intf.startswith('fe80:')
 
     def wait(self, timeout):
         """Calling thread waits for a given number of milliseconds or
@@ -428,6 +450,11 @@ class Zeroconf(object):
         changed if needed to make it unique on the network."""
         self.checkService(info)
         self.services[info.name.lower()] = info
+
+        if info.type not in self.servicetypes:
+            self.servicetypes[info.type] = 0
+        self.servicetypes[info.type] += 1
+
         now = dns.currentTimeMillis()
         nextTime = now
         i = 0
@@ -455,6 +482,10 @@ class Zeroconf(object):
         """Unregister a service."""
         try:
             del(self.services[info.name.lower()])
+
+            self.servicetypes[info.type] -= 1
+            if self.servicetypes[info.type] <= 0:
+                del self.servicetypes[info.type]
         except:
             pass
         now = dns.currentTimeMillis()
@@ -607,7 +638,15 @@ class Zeroconf(object):
         match the query.
         """
         log.debug( 'Question: %s', question )
-        for service in self.services.values():
+
+        if question.type == dns._TYPE_PTR and question.name == '_services._dns-sd._udp.local.':
+            if len(self.servicetypes) > 0:
+                if out is None:
+                    out = DNSOutgoing(_FLAGS_QR_RESPONSE | _FLAGS_AA)
+                for stype in self.servicetypes:
+                    out.addAnswer(msg, DNSPointer('_services._dns-sd._udp.local.', _TYPE_PTR, _CLASS_IN, _DNS_TTL, stype))
+
+        for service in self.services.values() :
             if question.type == dns._TYPE_PTR:
                 if question.name.lower() in (service.type.lower(),service.name.lower()):
                     log.debug( 'Service query found %s', service.name )

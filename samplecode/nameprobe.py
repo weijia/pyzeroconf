@@ -4,7 +4,7 @@ from zeroconf import mdns, mcastsocket, dns
 fake_type = '_test-server.local.'
 
 def main( base_name='coolserver.local.'):
-    z = mdns.Zeroconf( '0.0.0.0' )
+    z = mdns.Zeroconf( '' )
     try:
         name = '%s.%s'%( base_name.split('.')[0], fake_type )
         s = dns.ServiceInfo(
