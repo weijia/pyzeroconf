@@ -20,18 +20,15 @@ To install and play:
     $ virtualenv working 
     $ source working/bin/activate 
     $ pip install -e git+http://github.com/mcfletch/pyzeroconf.git#egg=PyZeroConf
-    $ cd pyzeroconf/samplecode
+    $ cd working/src/pyzeroconf/samplecode
     # Note the trailing '.' character!
     $ python nameprobe.py myserver.local.
     
-To build and view the docs on a Linux machine:
+To build and view the docs on a Linux machine (from the previous):
 
 .. code-block:: bash
 
-    $ virtualenv ../working
-    $ source ../working/bin/activate
     $ pip install -I sphinx
-    $ python setup.py develop
-    $ cd docs
+    $ cd working/src/pyzeroconf/docs
     $ make html
     $ kde-open _build/html/index.html
