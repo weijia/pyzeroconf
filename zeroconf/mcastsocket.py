@@ -4,8 +4,44 @@ This is refactored from the Zeroconf.py main module to allow for reuse within
 multiple environments (e.g. multicast SIP configuration, multicast paging
 groups and the like).
 
- Multicast DNS Service Discovery for Python, v0.12
-    Copyright (C) 2003, Paul Scott-Murphy
+You will need to be sure that your system is actually configured in such a way 
+that it can properly receive and send multicast messages.
+
+For instance, on Linux machines, the Reverse Path Filter feature in the kernel 
+may prevent you from receiving messages from any sender for which you do not 
+currently have a route defined (on a given interface).  This is particularly 
+important if you are attempting to implement a protocol whose purpose is to 
+allow machines to agree on an IP address without input from a DHCP server.
+
+.. code-block:: bash
+
+    $ echo "0" | sudo tee /proc/sys/net/ipv4/conf/eth0/rp_filter
+    $ echo "0" | sudo tee /proc/sys/net/ipv4/conf/eth1/rp_filter
+
+To create a multicast socket:
+
+.. code-block:: python
+
+    GROUP,PORT = ('224.1.1.2','8000')
+    sock = mcastsocket.create_socket( (GROUP,PORT), loop=False )
+    mcastsocket.join_group( sock, GROUP )
+    try:
+        sock.sendto( payload, (GROUP,PORT))
+        while time.time() < timeout:
+            rs,wr,xs = select.select( [sock],[],[], 5 )
+            if rs:
+                data, addr = sock.recvfrom( 65500 )
+                if handle( sock, data, addr ):
+                    break
+    finally:
+        mcastsocket.leave_group( sock, GROUP )
+
+
+License
+--------
+
+Multicast DNS Service Discovery for Python, v0.12
+Copyright (C) 2003, Paul Scott-Murphy
 
     This module provides a framework for the use of DNS Service Discovery
     using IP multicast.  It has been tested against the JRendezvous
@@ -36,13 +72,13 @@ def create_socket( address, TTL=1, loop=True, reuse=True ):
     ip in address[0], and bound on all interfaces with port address[1].
     Configures TTL and loop-back operation
 
-    address -- IP address family address ('ip',port) on which to listen/broadcast,
-        the port is always bound to all interfaces, but the use of an ip will cause
-        the IP_MULTICAST_IF option to be set in order to direct messages solely to
-        a given port.
-    TTL -- multicast TTL to set on the socket
-    loop -- whether to reflect our sent messages to our listening port
-    reuse -- whether to set up socket reuse parameters before binding
+    * address -- IP address family address ('ip',port) on which to listen/broadcast,
+               the port is always bound to all interfaces, but the use of an ip will cause
+               the IP_MULTICAST_IF option to be set in order to direct messages solely to
+               a given port.
+    * TTL -- multicast TTL to set on the socket
+    * loop -- whether to reflect our sent messages to our listening port
+    * reuse -- whether to set up socket reuse parameters before binding
 
     returns socket.socket instance configured as specified
     """
@@ -71,7 +107,7 @@ def limit_to_interface( sock, interface_ip ):
     to the system routing tables, so you do not need to set up a 224.0.0.0/4
     route on the system to receive multicast on the interface.
     """
-    if interface_ip:
+    if interface_ip and interface_ip != '0.0.0.0':
         # listen/send on a single interface...
         log.debug( 'Limiting multicast to use interface of %s', interface_ip )
         sock.setsockopt(
@@ -87,7 +123,6 @@ def allow_reuse( sock, reuse=True ):
     The common case where e.g. the host system has avahi or mdnsresponder
     installed will mean that our mDNS or uPNP port is likely already bound.
     This operation sets reuse options so that we can re-bind to the port.
-
     """
     if reuse:
         log.debug( 'Setting address/port reuse on mcast socket' )

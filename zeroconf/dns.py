@@ -1,5 +1,5 @@
 """ Multicast DNS Service Discovery for Python, v0.12
-    Copyright (C) 2003, Paul Scott-Murphy
+Copyright (C) 2003, Paul Scott-Murphy
 
     This module provides a DNS/mDNS encoding/decoding facility which
     is used by the package to communicate with mDNS servers/clients.
