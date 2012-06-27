@@ -23,7 +23,7 @@ To create a multicast socket:
 .. code-block:: python
 
     GROUP,PORT = ('224.1.1.2','8000')
-    sock = mcastsocket.create_socket( (GROUP,PORT), loop=False )
+    sock = mcastsocket.create_socket( ('0.0.0.0',PORT), loop=False )
     mcastsocket.join_group( sock, GROUP )
     try:
         sock.sendto( payload, (GROUP,PORT))
@@ -35,7 +35,6 @@ To create a multicast socket:
                     break
     finally:
         mcastsocket.leave_group( sock, GROUP )
-
 
 .. note::
     
@@ -62,14 +61,14 @@ log = logging.getLogger( __name__ )
 def create_socket( address, TTL=1, loop=True, reuse=True ):
     """Create our multicast socket for mDNS usage
 
-    Creates a multicast UDP socket with multicast address configured for the
-    ip in address[0], and bound on all interfaces with port address[1].
-    Configures TTL and loop-back operation
+    Creates a multicast UDP socket with ttl, loop and reuse parameters configured.
 
-    * address -- IP address family address ('ip',port) on which to listen/broadcast,
-               the port is always bound to all interfaces, but the use of an ip will cause
-               the IP_MULTICAST_IF option to be set in order to direct messages solely to
-               a given port.
+    * address -- IP address family address ('ip',port) on which to broadcast,
+                 The socket will *bind* on all interfaces but will only broadcast 
+                 on the interface specified.  If address[0] is in '0.0.0.0' or ''
+                 then will send on the system default interface.
+                 
+                 Controls the IP_MULTICAST_IF option.
     * TTL -- multicast TTL to set on the socket
     * loop -- whether to reflect our sent messages to our listening port
     * reuse -- whether to set up socket reuse parameters before binding
@@ -106,7 +105,7 @@ def limit_to_interface( sock, interface_ip ):
         log.debug( 'Limiting multicast to use interface of %s', interface_ip )
         sock.setsockopt(
             socket.IPPROTO_IP, socket.IP_MULTICAST_IF,
-            socket.inet_aton( interface_ip) # + socket.inet_aton( '0.0.0.0' )
+            socket.inet_aton( interface_ip)
         )
         return True
     return False
