@@ -13,6 +13,17 @@ The samplecode/ directory contains various sample code.
     Browser.py -- sample MDNS service browser
     nameprobe -- probe and attempt to reserve a .local MDNS name
 
+To install and play:
+
+.. code-block:: bash 
+
+    $ virtualenv working 
+    $ source working/bin/activate 
+    $ pip install -e git+http://github.com/mcfletch/pyzeroconf.git#egg=PyZeroConf
+    $ cd pyzeroconf/samplecode
+    # Note the trailing '.' character!
+    $ python nameprobe.py myserver.local.
+    
 To build and view the docs on a Linux machine:
 
 .. code-block:: bash
