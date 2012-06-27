@@ -1,4 +1,6 @@
-This is Multicast DNS Service Discovery for Python v0.12 by Paul Scott-Murphy.
+This is a fairly extensive fork of:
+
+    Multicast DNS Service Discovery for Python v0.12 by Paul Scott-Murphy.
 
 The package zeroconf contains most of the functional code.
 The module zeroconf/mdns.py contains a threaded mDNS query/responder 
