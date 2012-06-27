@@ -12,3 +12,15 @@ The samplecode/ directory contains various sample code.
 
     Browser.py -- sample MDNS service browser
     nameprobe -- probe and attempt to reserve a .local MDNS name
+
+To build and view the docs on a Linux machine:
+
+.. code-block:: bash
+
+    $ virtualenv ../working
+    $ source ../working/bin/activate
+    $ pip install -I sphinx
+    $ python setup.py develop
+    $ cd docs
+    $ make html
+    $ kde-open _build/html/index.html
