@@ -1,8 +1,8 @@
-""" Multicast DNS Service Discovery for Python, v0.12
-Copyright (C) 2003, Paul Scott-Murphy
+"""DNS/mDNS encoding/decoding facility
 
-    This module provides a DNS/mDNS encoding/decoding facility which
-    is used by the package to communicate with mDNS servers/clients.
+.. note::
+    Multicast DNS Service Discovery for Python, v0.12
+    Copyright (C) 2003, Paul Scott-Murphy
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public

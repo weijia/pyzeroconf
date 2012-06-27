@@ -1,10 +1,9 @@
-""" Multicast DNS Service Discovery for Python, v0.12
-    Copyright (C) 2003, Paul Scott-Murphy
+"""Threaded mDNS responder/query-er implementation
 
-    This module provides a framework for the use of DNS Service Discovery
-    using IP multicast.  It has been tested against the JRendezvous
-    implementation from <a href="http://strangeberry.com">StrangeBerry</a>,
-    and against the mDNSResponder from Mac OS X 10.3.8.
+.. note::
+    
+    Multicast DNS Service Discovery for Python, v0.12
+    Copyright (C) 2003, Paul Scott-Murphy
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -19,8 +18,6 @@
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-
-This is the threaded mDNS responder/query-er implementation
 """
 import string
 import time
@@ -373,7 +370,7 @@ class Zeroconf(object):
         query, as race conditions will occur if two machines booted at
         the same time try to resolve the same name.
         
-        Steps:
+        .. code-block:: python
         
             wait( random.randint( 0,250 ) ) # msg
             probe( question ) # 3 queries at 0, 250, 500 then wait another 250 for response 
@@ -385,7 +382,6 @@ class Zeroconf(object):
                     wait( random.randint( 0, 1000))
             else:
                 return query
-        
         """
         def names( name ):
             yield name

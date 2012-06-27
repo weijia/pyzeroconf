@@ -1,15 +1,7 @@
-Multicast Socket (pyzeroconf.mcastsocket)
-=========================================
+Multicast Socket (zeroconf.mcastsocket)
+=======================================
 
 .. automodule:: zeroconf.mcastsocket
    :members:
    :private-members:
    :special-members:
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
