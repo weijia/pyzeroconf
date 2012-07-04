@@ -81,12 +81,3 @@
 __author__ = "Paul Scott-Murphy"
 __email__ = "paul at scott dash murphy dot com"
 __version__ = "0.12.3"
-
-#from Zeroconf import dns
-#from Zeroconf import mcastsocket
-#from Zeroconf import mdns
-#
-#ServiceInfo = dns.ServiceInfo
-#ServiceBrowser = mdns.ServiceBrowser
-#Zeroconf = mdns.Zeroconf
-#__all__ = ["Zeroconf", "ServiceInfo", "ServiceBrowser"]

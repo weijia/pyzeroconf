@@ -58,20 +58,20 @@ To create a multicast socket:
 import socket,logging
 log = logging.getLogger( __name__ )
 
-def create_socket( address, TTL=1, loop=True, reuse=True ):
+def create_socket( address, TTL=1, loop=True, reuse=True, bind_address='' ):
     """Create our multicast socket for mDNS usage
 
     Creates a multicast UDP socket with ttl, loop and reuse parameters configured.
 
     * address -- IP address family address ('ip',port) on which to broadcast,
-                 The socket will *bind* on all interfaces but will only broadcast 
-                 on the interface specified.  If address[0] is in '0.0.0.0' or ''
-                 then will send on the system default interface.
+                 The socket will *bind* on bind_address but will only broadcast 
+                 on the interface specified.
                  
                  Controls the IP_MULTICAST_IF option.
     * TTL -- multicast TTL to set on the socket
     * loop -- whether to reflect our sent messages to our listening port
     * reuse -- whether to set up socket reuse parameters before binding
+    * bind_address -- local address (IP) on which to bind/listen
 
     returns socket.socket instance configured as specified
     """
@@ -85,7 +85,7 @@ def create_socket( address, TTL=1, loop=True, reuse=True ):
         # because the 224.* isn't getting mapped (routed) to the address of the interface...
         # to debug that case, see if {{{ip route add 224.0.0.0/4 dev br0}}} (or whatever your
         # interface is) makes the route suddenly start working...
-        sock.bind(('',address[1]))
+        sock.bind((bind_address,address[1]))
     except Exception, err:
         # Some versions of linux raise an exception even though
         # the SO_REUSE* options have been set, so ignore it
