@@ -15,10 +15,8 @@ def main( base_name='coolserver.local.', stype="_http._tcp.local."):
             server = base_name,
             address = socket.inet_aton('127.0.0.1'),
             port = 8080,
-            properties = {},
+            properties = {"hello":"world", "dept":"deustotech"}, # Setting DNS TXT records...
         )
-        # Setting DNS TXT records...
-        s.setProperties({"hello":"world", "dept":"deustotech"})
         
         z.registerService( s )
         name = z.probeName( base_name )
