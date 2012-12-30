@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+import socket
 from zeroconf import mdns, mcastsocket, dns
 
 fake_type = '_test-server.local.'
@@ -11,7 +12,7 @@ def main( base_name='coolserver.local.'):
             fake_type,
             name,
             server = base_name,
-            address = '127.0.0.1',
+            address = socket.inet_aton('127.0.0.1'),
             port = 8080,
             properties = {},
         )
