@@ -1,18 +1,20 @@
 #! /usr/bin/env python
-import logging,socket,sys,os
-from zeroconf import mdns as Zeroconf
+import sys
+import socket
+import logging
+from zeroconf.mdns import Zeroconf, ServiceInfo, __version__
 
 # Test a few module features, including service registration, service
 # query (for Zoe), and service unregistration.
 
 def main(ip=None):
-    print "Multicast DNS Service Discovery for Python, version", Zeroconf.__version__
-    r = Zeroconf.Zeroconf(ip or '')
+    print "Multicast DNS Service Discovery for Python, version", __version__
+    r = Zeroconf(ip or '')
     host_ip = socket.gethostbyname( socket.gethostname())
     try:
         print "1. Testing registration of a service..."
         desc = {'version':'0.10','a':'test value', 'b':'another value'}
-        info = Zeroconf.ServiceInfo(
+        info = ServiceInfo(
             "_http._tcp.local.", "My Service Name._http._tcp.local.",
             socket.inet_aton(host_ip), 1234, 0, 0, desc
         )

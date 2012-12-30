@@ -1,5 +1,5 @@
-from zeroconf.mdns import *
 import socket
+from zeroconf.mdns import Zeroconf, ServiceBrowser
 
 class MyListener(object):
     def __init__(self):

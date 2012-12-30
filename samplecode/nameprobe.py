@@ -1,14 +1,16 @@
 #! /usr/bin/env python
 import socket
-from zeroconf import mdns, mcastsocket, dns
+from zeroconf.dns import ServiceInfo
+from zeroconf.mdns import Zeroconf
+
 
 fake_type = '_test-server.local.'
 
 def main( base_name='coolserver.local.'):
-    z = mdns.Zeroconf( '' )
+    z = Zeroconf( '' )
     try:
         name = '%s.%s'%( base_name.split('.')[0], fake_type )
-        s = dns.ServiceInfo(
+        s = ServiceInfo(
             fake_type,
             name,
             server = base_name,

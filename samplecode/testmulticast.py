@@ -6,8 +6,10 @@ join the mDNS multicast group and send a (malformed) message to the group,
 our socket should receive that packet (because we have enabled multicast
 loopback on the socket).
 """
-import socket,os,sys,select,logging
-from zeroconf import dns,mcastsocket,mdns
+import sys
+import select
+import logging
+from zeroconf import dns, mcastsocket
 
 def main(ip):
     """Create a multicast socket, send a message, check it comes back"""
