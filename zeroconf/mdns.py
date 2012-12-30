@@ -640,7 +640,7 @@ class Zeroconf(object):
                 if out is None:
                     out = DNSOutgoing(_FLAGS_QR_RESPONSE | _FLAGS_AA)
                 for stype in self.servicetypes:
-                    out.addAnswer(msg, DNSPointer('_services._dns-sd._udp.local.', _TYPE_PTR, _CLASS_IN, _DNS_TTL, stype))
+                    out.addAnswer(msg, dns.DNSPointer('_services._dns-sd._udp.local.', dns._TYPE_PTR, dns._CLASS_IN, dns._DNS_TTL, stype))
 
         for service in self.services.values() :
             if question.type == dns._TYPE_PTR:
