@@ -16,6 +16,9 @@ def main( base_name='coolserver.local.', stype="_http._tcp.local."):
             port = 8080,
             properties = {},
         )
+        # Setting DNS TXT records...
+        s.setProperties({"hello":"world", "dept":"deustotech"})
+        
         z.registerService( s )
         name = z.probeName( base_name )
         z.unregisterService( s )
