@@ -5,7 +5,8 @@ from zeroconf.mdns import Zeroconf
 
 
 def main( base_name='coolserver.local.', stype="_http._tcp.local."):
-    z = Zeroconf( '' )
+    # http://serverfault.com/questions/78048/whats-the-difference-between-ip-address-0-0-0-0-and-127-0-0-1
+    z = Zeroconf( "0.0.0.0" ) # 0.0.0.0 represents all IP addresses on the local machine
     try:
         name = '%s.%s'%( base_name.split('.')[0], stype )
         s = ServiceInfo(

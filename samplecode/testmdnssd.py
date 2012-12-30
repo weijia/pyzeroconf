@@ -5,11 +5,15 @@ import logging
 from zeroconf.mdns import Zeroconf, ServiceInfo, __version__
 
 # Test a few module features, including service registration, service
-# query (for Zoe), and service unregistration.
+# query (for "coolserver"), and service unregistration.
+# "coolserver" service can be registered running "nameprobe.py"
 
 def main(ip=None):
     print "Multicast DNS Service Discovery for Python, version", __version__
-    r = Zeroconf(ip or '')
+    # It MUST be 0.0.0.0. NOT the local IP address or 127.0.0.1.
+    # Otherwise, at least in GNU/Linux, it doesn't get the service
+    # info of services registered in other processes (e.g. "coolserver")
+    r = Zeroconf( "0.0.0.0" ) 
     host_ip = socket.gethostbyname( socket.gethostname())
     try:
         print "1. Testing registration of a service..."
@@ -21,13 +25,21 @@ def main(ip=None):
         print "   Registering service..."
         r.registerService(info)
         print "   Registration done."
+        
         print "2. Testing query of service information..."
-        print "   Getting ZOE service:", str(r.getServiceInfo("_http._tcp.local.", "ZOE._http._tcp.local."))
+        service_info = r.getServiceInfo("_http._tcp.local.", "coolserver._http._tcp.local.")
+        print "   Getting 'coolserver' service: %r" % service_info
+        if service_info is None:
+	  print "       (Did you expect to see here the details of the 'coolserver' service? Try running 'nameprobe.py' before!)"
         print "   Query done."
+        
         print "3. Testing query of own service..."
         my_service = r.getServiceInfo("_http._tcp.local.", "My Service Name._http._tcp.local.")
         print "   Getting self:", str(my_service)
         print "   Query done."
+        
+        raw_input( 'Press <enter> to release name > ' )
+        
         print "4. Testing unregister of service information..."
         r.unregisterService(info)
         print "   Unregister done."
