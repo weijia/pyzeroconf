@@ -4,14 +4,12 @@ from zeroconf.dns import ServiceInfo
 from zeroconf.mdns import Zeroconf
 
 
-fake_type = '_test-server.local.'
-
-def main( base_name='coolserver.local.'):
+def main( base_name='coolserver.local.', stype="_http._tcp.local."):
     z = Zeroconf( '' )
     try:
-        name = '%s.%s'%( base_name.split('.')[0], fake_type )
+        name = '%s.%s'%( base_name.split('.')[0], stype )
         s = ServiceInfo(
-            fake_type,
+            stype,
             name,
             server = base_name,
             address = socket.inet_aton('127.0.0.1'),
