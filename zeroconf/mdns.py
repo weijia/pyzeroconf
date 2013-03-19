@@ -149,7 +149,7 @@ class Listener(object):
         except dns.NonLocalNameException, err:
             """We ignore mdns queries for non-local addresses, such as in-addr.arpa."""
         except dns.DNSError, err:
-            log.error( 
+            log.debug( 
                 "Malformed packet from %s (%s), ignored: %r", 
                 addr, err, data 
             )
