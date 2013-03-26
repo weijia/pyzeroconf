@@ -12,11 +12,12 @@ may prevent you from receiving messages from any sender for which you do not
 currently have a route defined (on a given interface).  This is particularly 
 important if you are attempting to implement a protocol whose purpose is to 
 allow machines to agree on an IP address without input from a DHCP server.
+Note: you will need to bind on all interfaces to make such a situation work.
 
 .. code-block:: bash
 
-    $ echo "0" | sudo tee /proc/sys/net/ipv4/conf/eth0/rp_filter
-    $ echo "0" | sudo tee /proc/sys/net/ipv4/conf/eth1/rp_filter
+    $ echo 0 | sudo tee /proc/sys/net/ipv4/conf/*/rp_filter
+    $ route add -net 224.0.0.0 netmask 240.0.0.0 dev eth1
 
 To create a multicast socket:
 
