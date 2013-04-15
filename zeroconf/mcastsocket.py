@@ -12,12 +12,10 @@ may prevent you from receiving messages from any sender for which you do not
 currently have a route defined (on a given interface).  This is particularly 
 important if you are attempting to implement a protocol whose purpose is to 
 allow machines to agree on an IP address without input from a DHCP server.
-Note: you will need to bind on all interfaces to make such a situation work.
 
 .. code-block:: bash
 
     $ echo 0 | sudo tee /proc/sys/net/ipv4/conf/*/rp_filter
-    $ route add -net 224.0.0.0 netmask 240.0.0.0 dev eth1
 
 To create a multicast socket:
 
@@ -65,11 +63,16 @@ def create_socket( address, TTL=1, loop=True, reuse=True ):
     Creates a multicast UDP socket with ttl, loop and reuse parameters configured.
 
     * address -- IP address family address ('ip',port) on which to bind/broadcast,
-                 The socket will *bind* on bind_address.  The IP_MULTICAST_IF
-                 option will also be set to the ip specified.
+                 The socket will *bind* on bind_address.  You almost always need
+                 this to be ('',port), as the Linux kernel seems to always return 
+                 multicast messages on the default multicast interface, regardless 
+                 of the limit_to_interface() calls.
     * TTL -- multicast TTL to set on the socket
     * loop -- whether to reflect our sent messages to our listening port
     * reuse -- whether to set up socket reuse parameters before binding
+    
+    Note: this no longer sets IP_MULTICAST_IF option, passing an iface parameter 
+    to join_group() *will* specify the *sending* interface (for that group).
 
     returns socket.socket instance configured as specified
     """
@@ -77,7 +80,6 @@ def create_socket( address, TTL=1, loop=True, reuse=True ):
     sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, TTL)
     sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, int(bool(loop)))
     allow_reuse( sock, reuse )
-    limit_to_interface( sock, address[0] )
     try:
         # Note: multicast is *not* working if we don't bind on all interfaces, most likely
         # because the 224.* isn't getting mapped (routed) to the address of the interface...
@@ -101,9 +103,10 @@ def limit_to_interface( sock, interface_ip ):
     if interface_ip and interface_ip != '0.0.0.0':
         # listen/send on a single interface...
         log.debug( 'Limiting multicast to use interface of %s', interface_ip )
+        # Build an ip_mreqn structure...
         sock.setsockopt(
             socket.IPPROTO_IP, socket.IP_MULTICAST_IF,
-            socket.inet_aton( interface_ip)
+            socket.inet_aton( interface_ip )
         )
         return True
     return False
@@ -139,17 +142,20 @@ def allow_reuse( sock, reuse=True ):
         return True
     return False
 
-def join_group( sock, group ):
+def join_group( sock, group, iface='0.0.0.0' ):
     """Add our socket to this multicast group"""
     log.info( 'Joining multicast group: %s', group )
+    # group, local interface an ip_mreqn structure...
+    limit_to_interface( sock, iface )
+    struct = socket.inet_aton(group) + socket.inet_aton(iface)
     sock.setsockopt(
         socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP,
-        socket.inet_aton(group) + socket.inet_aton('0.0.0.0')
+        struct
     )
-def leave_group( sock, group ):
+def leave_group( sock, group, iface='0.0.0.0' ):
     """Remove our socket from this multicast group"""
     log.info( 'Leaving multicast group: %s', group )
     sock.setsockopt(
         socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP,
-        socket.inet_aton(group) + socket.inet_aton('0.0.0.0')
+        socket.inet_aton(group) + socket.inet_aton(iface)
     )
