@@ -96,6 +96,13 @@ def create_socket( address, TTL=1, loop=True, reuse=True, family=socket.AF_INET 
         log.error('Failure binding: %s', err)
     return sock
 
+def canonical( sock, ip ):
+    family = getattr( sock, 'family', sock )
+    if family == socket.AF_INET6:
+        if ip == '':
+            ip = '::'
+    return socket.inet_ntop( family, socket.inet_pton( family, ip ))
+    
 def limit_to_interface( sock, interface_ip ):
     """Restrict multicast operation to the given interface/ip (instead of using routing)
 
@@ -157,8 +164,8 @@ def join_group( sock, group, iface='' ):
     """Add our socket to this multicast group"""
     log.info( 'Joining multicast group: %s', group )
     # group, local interface an ip_mreqn structure...
-    if sock.family == socket.AF_INET6 and not iface:
-        iface = '::'
+    group = canonical( sock,group )
+    iface = canonical( sock,iface )
     limit_to_interface( sock, iface )
     struct = socket.inet_pton(sock.family,group) + socket.inet_pton(sock.family,iface)
     if sock.family == socket.AF_INET6:
@@ -175,8 +182,8 @@ def join_group( sock, group, iface='' ):
 def leave_group( sock, group, iface='' ):
     """Remove our socket from this multicast group"""
     log.info( 'Leaving multicast group: %s', group )
-    if sock.family == socket.AF_INET6 and not iface:
-        iface = '::'
+    group = canonical( sock,group )
+    iface = canonical( sock,iface )
     struct = socket.inet_pton(sock.family,group) + socket.inet_pton(sock.family,iface)
     if sock.family == socket.AF_INET6:
         sock.setsockopt(
