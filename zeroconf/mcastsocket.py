@@ -104,7 +104,8 @@ def limit_to_interface( sock, interface_ip ):
     to the system routing tables, so you do not need to set up a 224.0.0.0/4
     route on the system to receive multicast on the interface.
     """
-    if interface_ip and interface_ip != '0.0.0.0':
+    # TODO: test for nullity, not string representations...
+    if interface_ip and interface_ip not in ('0.0.0.0','::',''):
         # listen/send on a single interface...
         log.debug( 'Limiting multicast to use interface of %s', interface_ip )
         # Build an ip_mreqn structure...
@@ -152,10 +153,12 @@ def allow_reuse( sock, reuse=True ):
         return True
     return False
 
-def join_group( sock, group, iface='0.0.0.0' ):
+def join_group( sock, group, iface='' ):
     """Add our socket to this multicast group"""
     log.info( 'Joining multicast group: %s', group )
     # group, local interface an ip_mreqn structure...
+    if sock.family == socket.AF_INET6 and not iface:
+        iface = '::'
     limit_to_interface( sock, iface )
     struct = socket.inet_pton(sock.family,group) + socket.inet_pton(sock.family,iface)
     if sock.family == socket.AF_INET6:
@@ -164,13 +167,16 @@ def join_group( sock, group, iface='0.0.0.0' ):
             struct
         )
     else:
+        struct = socket.inet_pton(sock.family,group) + socket.inet_pton(sock.family,iface)
         sock.setsockopt(
             socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP,
             struct
         )
-def leave_group( sock, group, iface='0.0.0.0' ):
+def leave_group( sock, group, iface='' ):
     """Remove our socket from this multicast group"""
     log.info( 'Leaving multicast group: %s', group )
+    if sock.family == socket.AF_INET6 and not iface:
+        iface = '::'
     struct = socket.inet_pton(sock.family,group) + socket.inet_pton(sock.family,iface)
     if sock.family == socket.AF_INET6:
         sock.setsockopt(
