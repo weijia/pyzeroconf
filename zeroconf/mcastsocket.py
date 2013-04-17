@@ -101,6 +101,9 @@ def canonical( sock, ip ):
     if family == socket.AF_INET6:
         if ip == '':
             ip = '::'
+    else:
+        if ip == '':
+            ip = '0.0.0.0'
     return socket.inet_ntop( family, socket.inet_pton( family, ip ))
     
 def limit_to_interface( sock, interface_ip ):
