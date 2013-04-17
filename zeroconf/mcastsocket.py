@@ -57,7 +57,7 @@ To create a multicast socket:
 import socket,logging
 log = logging.getLogger( __name__ )
 
-def create_socket( address, TTL=1, loop=True, reuse=True ):
+def create_socket( address, TTL=1, loop=True, reuse=True, family=socket.AF_INET ):
     """Create our multicast socket for mDNS usage
 
     Creates a multicast UDP socket with ttl, loop and reuse parameters configured.
@@ -76,9 +76,13 @@ def create_socket( address, TTL=1, loop=True, reuse=True ):
 
     returns socket.socket instance configured as specified
     """
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, TTL)
-    sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, int(bool(loop)))
+    sock = socket.socket(family, socket.SOCK_DGRAM)
+    if family == socket.AF_INET:
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, TTL)
+        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, int(bool(loop)))
+    else:
+        sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_HOPS, TTL)
+        sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_LOOP, int(bool(loop)))
     allow_reuse( sock, reuse )
     try:
         # Note: multicast is *not* working if we don't bind on all interfaces, most likely
@@ -104,10 +108,16 @@ def limit_to_interface( sock, interface_ip ):
         # listen/send on a single interface...
         log.debug( 'Limiting multicast to use interface of %s', interface_ip )
         # Build an ip_mreqn structure...
-        sock.setsockopt(
-            socket.IPPROTO_IP, socket.IP_MULTICAST_IF,
-            socket.inet_aton( interface_ip )
-        )
+        if sock.family == socket.AF_INET6:
+            sock.setsockopt(
+                socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_IF,
+                socket.inet_pton(sock.family, interface_ip)
+            )
+        else:
+            sock.setsockopt(
+                socket.IPPROTO_IP, socket.IP_MULTICAST_IF,
+                socket.inet_pton(sock.family, interface_ip)
+            )
         return True
     return False
 
@@ -147,15 +157,28 @@ def join_group( sock, group, iface='0.0.0.0' ):
     log.info( 'Joining multicast group: %s', group )
     # group, local interface an ip_mreqn structure...
     limit_to_interface( sock, iface )
-    struct = socket.inet_aton(group) + socket.inet_aton(iface)
-    sock.setsockopt(
-        socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP,
-        struct
-    )
+    struct = socket.inet_pton(sock.family,group) + socket.inet_pton(sock.family,iface)
+    if sock.family == socket.AF_INET6:
+        sock.setsockopt(
+            socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP,
+            struct
+        )
+    else:
+        sock.setsockopt(
+            socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP,
+            struct
+        )
 def leave_group( sock, group, iface='0.0.0.0' ):
     """Remove our socket from this multicast group"""
     log.info( 'Leaving multicast group: %s', group )
-    sock.setsockopt(
-        socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP,
-        socket.inet_aton(group) + socket.inet_aton(iface)
-    )
+    struct = socket.inet_pton(sock.family,group) + socket.inet_pton(sock.family,iface)
+    if sock.family == socket.AF_INET6:
+        sock.setsockopt(
+            socket.IPPROTO_IPV6, socket.IPV6_LEAVE_GROUP,
+            struct
+        )
+    else:
+        sock.setsockopt(
+            socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP,
+            struct,
+        )
