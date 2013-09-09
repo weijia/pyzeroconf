@@ -2,7 +2,7 @@
 """Install Zeroconf.py using distutils"""
 try:
     from setuptools import setup 
-except ImportError, err:
+except ImportError as err:
     from distutils.core import setup
 import os
 info = {}
