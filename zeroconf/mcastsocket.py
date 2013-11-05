@@ -22,7 +22,7 @@ To create a multicast socket:
 .. code-block:: python
 
     GROUP,PORT = ('224.1.1.2','8000')
-    sock = mcastsocket.create_socket( ('0.0.0.0',PORT), loop=False )
+    sock = mcastsocket.create_socket( (GROUP,PORT), loop=False )
     mcastsocket.join_group( sock, GROUP )
     try:
         sock.sendto( payload, (GROUP,PORT))
@@ -63,10 +63,13 @@ def create_socket( address, TTL=1, loop=True, reuse=True, family=socket.AF_INET 
     Creates a multicast UDP socket with ttl, loop and reuse parameters configured.
 
     * address -- IP address family address ('ip',port) on which to bind/broadcast,
-                 The socket will *bind* on bind_address.  You almost always need
-                 this to be ('',port), as the Linux kernel seems to always return 
-                 multicast messages on the default multicast interface, regardless 
-                 of the limit_to_interface() calls.
+                 The socket will *bind* on bind_address, but that does not mean 
+                 the same thing as for a regular socket. The useful values for 
+                 this are ('',port) to bind everything or (group,port) to bind 
+                 for just a single group. If you bind on (interface_ip,port) you 
+                 will only receive messages that would be routed to that 
+                 interface naturally (i.e. unless interface is your default 
+                 multicast interface you won't get any messages)
     * TTL -- multicast TTL to set on the socket
     * loop -- whether to reflect our sent messages to our listening port
     * reuse -- whether to set up socket reuse parameters before binding
@@ -89,6 +92,7 @@ def create_socket( address, TTL=1, loop=True, reuse=True, family=socket.AF_INET 
         # because the 224.* isn't getting mapped (routed) to the address of the interface...
         # to debug that case, see if {{{ip route add 224.0.0.0/4 dev br0}}} (or whatever your
         # interface is) makes the route suddenly start working...
+        # However, if you want to bind on just one interface, use the group 
         sock.bind(address)
     except Exception, err:
         # Some versions of linux raise an exception even though
@@ -112,7 +116,8 @@ def limit_to_interface( sock, interface_ip ):
     Sets the IP_MULTICAST_IF option on the socket to restrict multicast
     operations to a particular interface.  This is done without reference
     to the system routing tables, so you do not need to set up a 224.0.0.0/4
-    route on the system to receive multicast on the interface.
+    route on the system to receive multicast on a given interface if you 
+    have bound the socket to anything other than ('',port) or (group,port).
     """
     # TODO: test for nullity, not string representations...
     if interface_ip and interface_ip not in ('0.0.0.0','::',''):
@@ -198,3 +203,4 @@ def leave_group( sock, group, iface='' ):
             socket.IPPROTO_IP, socket.IP_DROP_MEMBERSHIP,
             struct,
         )
+
