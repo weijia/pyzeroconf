@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 import socket
+from ip_tool import get_ip_address
 from zeroconf.dns import ServiceInfo
 from zeroconf.mdns import Zeroconf
 
@@ -13,7 +14,7 @@ def main( base_name='coolserver.local.', stype="_http._tcp.local."):
             stype,
             name,
             server = base_name,
-            address = socket.inet_aton('127.0.0.1'),
+            address = socket.inet_aton(get_ip_address()),
             port = 8080,
             properties = {"hello":"world", "dept":"deustotech"}, # Setting DNS TXT records...
         )
