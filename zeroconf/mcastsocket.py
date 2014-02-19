@@ -192,7 +192,7 @@ def leave_group( sock, group, iface='' ):
     log.info( 'Leaving multicast group: %s', group )
     group = canonical( sock,group )
     iface = canonical( sock,iface )
-    struct = socket.inet_pton(sock.family,group) + socket.inet_pton(sock.family,iface)
+    struct = socket_wrapper.inet_pton(sock.family,group) + socket_wrapper.inet_pton(sock.family,iface)
     if sock.family == socket.AF_INET6:
         sock.setsockopt(
             socket.IPPROTO_IPV6, socket.IPV6_LEAVE_GROUP,
