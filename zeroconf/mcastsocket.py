@@ -99,7 +99,7 @@ def create_socket( address, TTL=1, loop=True, reuse=True, family=socket.AF_INET 
         # the SO_REUSE* options have been set, so ignore it
         log.error('Failure binding: %s', err)
     return sock
-
+import zeroconf.socket_wrapper as socket_wrapper
 def canonical( sock, ip ):
     family = getattr( sock, 'family', sock )
     if family == socket.AF_INET6:
@@ -108,7 +108,7 @@ def canonical( sock, ip ):
     else:
         if ip == '':
             ip = '0.0.0.0'
-    return socket.inet_ntop( family, socket.inet_pton( family, ip ))
+    return socket_wrapper.inet_ntop( family, socket_wrapper.inet_pton( family, ip ))
     
 def limit_to_interface( sock, interface_ip ):
     """Restrict multicast operation to the given interface/ip (instead of using routing)
@@ -132,7 +132,7 @@ def limit_to_interface( sock, interface_ip ):
         else:
             sock.setsockopt(
                 socket.IPPROTO_IP, socket.IP_MULTICAST_IF,
-                socket.inet_pton(sock.family, interface_ip)
+                socket_wrapper.inet_pton(sock.family, interface_ip)
             )
         return True
     return False
@@ -175,14 +175,14 @@ def join_group( sock, group, iface='' ):
     group = canonical( sock,group )
     iface = canonical( sock,iface )
     limit_to_interface( sock, iface )
-    struct = socket.inet_pton(sock.family,group) + socket.inet_pton(sock.family,iface)
+    struct = socket_wrapper.inet_pton(sock.family,group) + socket_wrapper.inet_pton(sock.family,iface)
     if sock.family == socket.AF_INET6:
         sock.setsockopt(
             socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP,
             struct
         )
     else:
-        struct = socket.inet_pton(sock.family,group) + socket.inet_pton(sock.family,iface)
+        struct = socket_wrapper.inet_pton(sock.family,group) + socket_wrapper.inet_pton(sock.family,iface)
         sock.setsockopt(
             socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP,
             struct
