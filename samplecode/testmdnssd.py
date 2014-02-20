@@ -2,6 +2,7 @@
 import sys
 import socket
 import logging
+from samplecode.ip_tool import get_ip_address
 from zeroconf.mdns import Zeroconf, ServiceInfo, __version__
 
 # Test a few module features, including service registration, service
@@ -14,7 +15,8 @@ def main(ip=None):
     # Otherwise, at least in GNU/Linux, it doesn't get the service
     # info of services registered in other processes (e.g. "coolserver")
     r = Zeroconf( "0.0.0.0" ) 
-    host_ip = socket.gethostbyname( socket.gethostname())
+    #host_ip = socket.gethostbyname( socket.gethostname())
+    host_ip = get_ip_address()
     try:
         print "1. Testing registration of a service..."
         desc = {'version':'0.10','a':'test value', 'b':'another value'}
