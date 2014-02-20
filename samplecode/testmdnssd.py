@@ -2,7 +2,7 @@
 import sys
 import socket
 import logging
-from samplecode.ip_tool import get_ip_address
+from ip_tool import get_ip_address
 from zeroconf.mdns import Zeroconf, ServiceInfo, __version__
 
 # Test a few module features, including service registration, service
