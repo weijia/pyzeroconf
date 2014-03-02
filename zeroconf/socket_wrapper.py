@@ -5,7 +5,9 @@
 import socket
 
 try:
-    import socket.inet_ntop as inet_ntop
+    import socket
+    inet_ntop = socket.inet_ntop
+    inet_pton = socket.inet_pton
 except:
     # This software released into the public domain. Anyone is free to copy,
     # modify, publish, use, compile, sell, or distribute this software,
